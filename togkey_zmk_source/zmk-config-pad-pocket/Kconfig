@@ -1,0 +1,7 @@
+menuconfig PAD_POCKET_BLE_BROADCAST
+    bool "Pad Pocket two-host BLE broadcast behavior"
+    default y
+    depends on ZMK_BLE
+    help
+      Adds a behavior which sends one of the two monitor-control hotkeys to
+      connected BLE profiles 0 and 1 without changing the active profile.

@@ -1,0 +1,5 @@
+description: Send a monitor-control hotkey to BLE profiles 0 and 1
+
+compatible: "togkey,behavior-ble-broadcast"
+
+include: one_param.yaml
