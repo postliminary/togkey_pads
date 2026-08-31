@@ -30,7 +30,9 @@ LOG_MODULE_REGISTER(pad_pocket_ble_broadcast, CONFIG_ZMK_LOG_LEVEL);
 
 static const struct bt_gatt_attr *keyboard_report_attr;
 
-static uint8_t find_keyboard_report_attr(const struct bt_gatt_attr *attr, void *user_data) {
+static uint8_t find_keyboard_report_attr(const struct bt_gatt_attr *attr, uint16_t handle,
+                                         void *user_data) {
+    ARG_UNUSED(handle);
     ARG_UNUSED(user_data);
 
     if (bt_uuid_cmp(attr->uuid, BT_UUID_HIDS_REPORT) == 0) {
@@ -88,7 +90,7 @@ static int broadcast_report(uint8_t action, bool pressed) {
 
     struct zmk_hid_keyboard_report_body report = {0};
     if (pressed) {
-        report.modifiers = MOD_LCTRL | MOD_LALT;
+        report.modifiers = MOD_LCTL | MOD_LALT;
         report.keys[0] = action == ACTION_USB_C ? HID_USAGE_KEY_KEYBOARD_F23
                                                 : HID_USAGE_KEY_KEYBOARD_F24;
     }

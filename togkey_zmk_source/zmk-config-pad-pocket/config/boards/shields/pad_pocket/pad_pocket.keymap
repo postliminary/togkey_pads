@@ -9,13 +9,18 @@
         go_to_bluetooth_layer: go_to_bluetooth_layer {
             compatible = "zmk,behavior-macro";
             #binding-cells = <0>;
-            bindings = <&macro_press &to 1>, <&macro_press &rgb_ug RGB_ON>, <&macro_press &rgb_ug RGB_COLOR_HSB(225, 100, 50)>, <&macro_press &rgb_ug RGB_EFF>; 
+            // Purple means Bluetooth setup mode.
+            bindings = <&macro_press &to 1>
+                     , <&macro_press &rgb_ug RGB_ON>
+                     , <&macro_press &rgb_ug RGB_EFR>
+                     , <&macro_press &rgb_ug RGB_COLOR_HSB(285, 100, 50)>;
         };
 
         go_to_default_layer: go_to_default_layer {
             compatible = "zmk,behavior-macro";
             #binding-cells = <0>;
-            bindings = <&macro_press &to 0>, <&macro_press &rgb_ug RGB_EFR>, <&macro_press &rgb_ug RGB_COLOR_HSB(205, 0, 25)>; 
+            // Keep the selected profile's color, but stop its pairing animation.
+            bindings = <&macro_press &to 0>, <&macro_press &rgb_ug RGB_EFR>;
         };
 
         double_click: double_click {
@@ -27,38 +32,67 @@
         bluetooth_profile_select_0: bluetooth_profile_select_0 {
             compatible = "zmk,behavior-macro";
             #binding-cells = <0>;
+            // Profile 0 / USB-C is blue.
             bindings = <&macro_press &bt BT_SEL 0>
-            , <&macro_press &rgb_ug RGB_TOG>
-            , <&macro_wait_time 100>
-            , <&macro_press &rgb_ug RGB_TOG>
-            , <&macro_wait_time 100>
-            , <&macro_press &rgb_ug RGB_TOG>
-            , <&macro_wait_time 100>
-            , <&macro_press &rgb_ug RGB_TOG>
-            , <&macro_wait_time 100>
-            , <&macro_press &rgb_ug RGB_TOG>
-            , <&macro_wait_time 100>
-            , <&macro_press &rgb_ug RGB_TOG>; 
+                     , <&macro_press &rgb_ug RGB_ON>
+                     , <&macro_press &rgb_ug RGB_EFR>
+                     , <&macro_press &rgb_ug RGB_COLOR_HSB(210, 100, 50)>;
         };
 
         bluetooth_profile_clear_0: bluetooth_profile_clear_0 {
             compatible = "zmk,behavior-macro";
             #binding-cells = <0>;
             wait-ms = <100>;
-            bindings = <&macro_tap &bt BT_SEL 0>, <&macro_tap &bt BT_CLR>;
+            // Breathing blue means profile 0 was cleared and is ready to pair.
+            bindings = <&macro_tap &bt BT_SEL 0>
+                     , <&macro_tap &bt BT_CLR>
+                     , <&macro_tap &rgb_ug RGB_ON>
+                     , <&macro_tap &rgb_ug RGB_EFR>
+                     , <&macro_tap &rgb_ug RGB_COLOR_HSB(210, 100, 50)>
+                     , <&macro_tap &rgb_ug RGB_EFF>;
         };
 
         bluetooth_profile_clear_1: bluetooth_profile_clear_1 {
             compatible = "zmk,behavior-macro";
             #binding-cells = <0>;
             wait-ms = <100>;
-            bindings = <&macro_tap &bt BT_SEL 1>, <&macro_tap &bt BT_CLR>;
+            // Breathing green means profile 1 was cleared and is ready to pair.
+            bindings = <&macro_tap &bt BT_SEL 1>
+                     , <&macro_tap &bt BT_CLR>
+                     , <&macro_tap &rgb_ug RGB_ON>
+                     , <&macro_tap &rgb_ug RGB_EFR>
+                     , <&macro_tap &rgb_ug RGB_COLOR_HSB(120, 100, 50)>
+                     , <&macro_tap &rgb_ug RGB_EFF>;
         };
 
         bluetooth_profile_select_1: bluetooth_profile_select_1 {
             compatible = "zmk,behavior-macro";
             #binding-cells = <0>;
-            bindings = <&macro_press &bt BT_SEL 1>;
+            // Profile 1 / DisplayPort is green.
+            bindings = <&macro_press &bt BT_SEL 1>
+                     , <&macro_press &rgb_ug RGB_ON>
+                     , <&macro_press &rgb_ug RGB_EFR>
+                     , <&macro_press &rgb_ug RGB_COLOR_HSB(120, 100, 50)>;
+        };
+
+        activate_pc_1: activate_pc_1 {
+            compatible = "zmk,behavior-macro";
+            #binding-cells = <0>;
+            bindings = <&macro_tap &bt BT_SEL 0>
+                     , <&macro_tap &rgb_ug RGB_ON>
+                     , <&macro_tap &rgb_ug RGB_EFR>
+                     , <&macro_tap &rgb_ug RGB_COLOR_HSB(210, 100, 50)>
+                     , <&macro_tap &ble_broadcast 0>;
+        };
+
+        activate_pc_2: activate_pc_2 {
+            compatible = "zmk,behavior-macro";
+            #binding-cells = <0>;
+            bindings = <&macro_tap &bt BT_SEL 1>
+                     , <&macro_tap &rgb_ug RGB_ON>
+                     , <&macro_tap &rgb_ug RGB_EFR>
+                     , <&macro_tap &rgb_ug RGB_COLOR_HSB(120, 100, 50)>
+                     , <&macro_tap &ble_broadcast 1>;
         };
     };
 
@@ -205,10 +239,10 @@
         default_layer { // Layer 0
             display-name = "Default Layer";
             // -------------------------------------
-            //       |     Vol -    |     Vol +     |
+            //       | PC 1 + USB-C | PC 2 + DP    |
             bindings = <
-                &td0
-                &td1
+                &activate_pc_1
+                &activate_pc_2
             >;
         };
 
