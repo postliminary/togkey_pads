@@ -45,7 +45,7 @@ jobs:
       - name: Build firmware from Pad Pocket matrix
         run: |
           cd "$WEST_WORKSPACE"
-          python - <<'PY'
+          python3 - <<'PY'
           import os
           import pathlib
           import shlex
