@@ -1,0 +1,55 @@
+name: Release Windows helper
+
+on:
+  release:
+    types: [published]
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    name: Build ${{ matrix.runtime }}
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        runtime: [win-x64, win-arm64]
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.release.tag_name }}
+          persist-credentials: false
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Publish self-contained executable
+        run: >-
+          dotnet publish windows/PadPocket/PadPocket.csproj
+          --configuration Release
+          --runtime ${{ matrix.runtime }}
+          --self-contained true
+          --output "${{ runner.temp }}/publish/${{ matrix.runtime }}"
+
+      - name: Package executable
+        env:
+          RUNTIME: ${{ matrix.runtime }}
+        run: |
+          $publishPath = Join-Path $env:RUNNER_TEMP "publish/$env:RUNTIME"
+          if (!(Test-Path (Join-Path $publishPath 'PadPocket.exe'))) {
+            throw 'Published executable is missing'
+          }
+          Compress-Archive -Path "$publishPath/*" -DestinationPath "PadPocket-$env:RUNTIME.zip"
+
+      - name: Upload release asset
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+          RUNTIME: ${{ matrix.runtime }}
+        run: gh release upload "$env:RELEASE_TAG" "PadPocket-$env:RUNTIME.zip" --clobber

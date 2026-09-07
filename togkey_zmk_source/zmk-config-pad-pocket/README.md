@@ -57,35 +57,52 @@ After setup, tap the left or right key directly to select that PC and monitor in
 
 ## Windows receiver
 
-No external monitor utility is required. Run `windows/monitor-switch.ps1` on both PCs. It uses the
-Windows High-Level Monitor Configuration API (`dxva2.dll`) to set DDC/CI VCP feature `0x60` and
-adds a **Pad Pocket monitor switch** icon to the notification area:
+The receiver is a .NET 10 Windows Forms tray app in [`windows/PadPocket`](../../windows/PadPocket) at the repository root. It uses the
+Windows monitor-control API directly; no PowerShell, VBS, or external monitor utility is needed.
+
+### Build
+
+Download a Windows helper ZIP from the GitHub release assets and extract it, or install the
+.NET 10 SDK and run from the repository root:
 
 ```powershell
-powershell.exe -NoProfile -STA -ExecutionPolicy Bypass `
-  -File .\windows\monitor-switch.ps1 -Monitor Primary
+dotnet publish .\windows\PadPocket\PadPocket.csproj -c Release -r win-x64 -o .\windows\PadPocket\bin\publish\win-x64
 ```
 
-Right-click the tray icon to switch inputs manually, show the monitors Windows detected, or exit.
-Double-click it to show the current hotkey target. The receiver registers the uncommon hotkeys
-`Ctrl+Alt+F23` and `Ctrl+Alt+F24`, wakes the local display signal, then sets VCP `0x60` to `2`
-(USB-C) or `3` (DisplayPort). Enable DDC/CI in the Planar monitor menu.
+Copy `windows/PadPocket/bin/publish/win-x64/PadPocket.exe` to a permanent folder on each PC.
+The single executable includes its .NET runtime. Use `win-arm64` instead of `win-x64` when
+publishing for an ARM64 PC. Building requires the SDK; running the published app does not.
 
-`-Monitor Primary` is the default. If the Planar is not primary, use the index displayed by **Show
-detected monitors** (for example, `-Monitor 1`) or a unique part of its reported description (for
-example, `-Monitor PZN3815Q`). `-WakeDelayMilliseconds` can be increased if the display needs more
-than the default 500 ms before it accepts DDC commands.
+### Run and start with Windows
 
-To start the receiver silently at sign-in, make a shortcut in `shell:startup` with this target
-(replace the script path with its absolute location):
+1. Exit the old PowerShell receiver through its tray menu, and disable its scheduled task or
+   remove its Startup shortcut to avoid hotkey conflicts.
+2. Double-click `PadPocket.exe`. It starts in the notification area with no console window.
+3. Right-click its tray icon and enable **Start with Windows**. This registers the current
+   executable path and arguments for your account at sign-in, without requiring administrator
+   access or Task Scheduler. Uncheck the same option to disable it. If you move the executable,
+   launch it from its new location and enable the option again.
 
-```text
-powershell.exe -NoProfile -STA -WindowStyle Hidden -ExecutionPolicy Bypass -File "C:\path\to\monitor-switch.ps1"
+Only one app instance runs per Windows session. The tray menu provides **Switch to USB-C**,
+**Switch to DisplayPort**, **Show detected monitors**, and **Exit**.
+
+The receiver listens for `Ctrl+Alt+F23` (USB-C, VCP `0x60` value `2`) and `Ctrl+Alt+F24`
+(DisplayPort, value `3`). It wakes the local display signal before switching. Enable DDC/CI in
+the Planar monitor menu.
+
+The primary monitor is selected by default. To choose a monitor or adjust the wake delay:
+
+```powershell
+.\PadPocket.exe --monitor PZN3815Q --wake-delay 1000
 ```
 
-The native Windows API only exposes monitors that the display driver reports as DDC/CI capable. If
-the tray reports that no physical monitor was found, confirm DDC/CI is enabled and that the cable,
-dock, and display driver support monitor-control commands.
+`--monitor` accepts `Primary`, `All`, a zero-based index from **Show detected monitors**, or a
+unique part of a monitor description. `--wake-delay` accepts 0–10000 milliseconds (default 500).
+Enable **Start with Windows** after launching with your chosen arguments to save them.
+
+Monitors are enumerated when switching, so unavailable displays at sign-in do not terminate the
+receiver. If switching fails, check DDC/CI, the cable, dock, and display driver. The original
+[`windows/monitor-switch.ps1`](../../windows/monitor-switch.ps1) remains available as a legacy receiver.
 
 ## Simultaneous-delivery test
 
