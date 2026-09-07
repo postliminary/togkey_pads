@@ -14,9 +14,10 @@ The release tag must include `.github/workflows/release-windows.yml`.
 
 ## ZMK firmware
 
-ZMK supports [GitHub Actions firmware builds](https://zmk.dev/docs/user-setup) using its
-reusable `zmkfirmware/zmk/.github/workflows/build-user-config.yml` workflow. This repository's
-configurations and build matrices live under `togkey_zmk_source`; a firmware workflow would
-need to select those nested paths and include the Pad Pocket custom module. Firmware release
-automation is not configured here yet. Generated `.uf2` files are ignored; see the
+The [Pad Pocket firmware workflow](.github/workflows/build-pad-pocket.yml) builds only the
+custom Pad Pocket configuration and its settings-reset firmware using ZMK v0.3. It runs on
+pushes and pull requests affecting that configuration or workflow, manually from Actions,
+and when a GitHub release is published. Download the `pad-pocket-firmware` Actions artifact,
+or the `pad-pocket.uf2` and `pad-pocket-settings-reset.uf2` assets attached to a release.
+The release tag must include the firmware workflow. Generated `.uf2` files are ignored; see the
 [Pad Pocket build instructions](togkey_zmk_source/zmk-config-pad-pocket/README.md#build-and-flash).

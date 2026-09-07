@@ -23,8 +23,15 @@ disconnected host is skipped; the connected host still receives the monitor comm
 
 ## Build and flash
 
-The manifest pins ZMK v0.3. Build from the ZMK development container with this repository mounted
-at `/workspaces/zmk-config`. The repository root is an external ZMK module as well as the location
+The [GitHub Actions workflow](../../.github/workflows/build-pad-pocket.yml) builds this custom
+configuration and settings-reset firmware on relevant pushes and pull requests, on manual runs,
+and when a release is published. Download `pad-pocket-firmware` from the completed Actions run
+or the UF2 assets from the release. Flash `pad-pocket.uf2` for normal use;
+`pad-pocket-settings-reset.uf2` clears saved settings and Bluetooth bonds.
+
+The manifest pins ZMK v0.3. For a local build, mount this configuration directory
+(`togkey_zmk_source/zmk-config-pad-pocket`) at `/workspaces/zmk-config` in the ZMK development
+container. This directory is an external ZMK module as well as the location
 of the `config` directory, so both CMake arguments below are required.
 
 ```sh
@@ -75,10 +82,8 @@ publishing for an ARM64 PC. Building requires the SDK; running the published app
 
 ### Run and start with Windows
 
-1. Exit the old PowerShell receiver through its tray menu, and disable its scheduled task or
-   remove its Startup shortcut to avoid hotkey conflicts.
-2. Double-click `PadPocket.exe`. It starts in the notification area with no console window.
-3. Right-click its tray icon and enable **Start with Windows**. This registers the current
+1. Double-click `PadPocket.exe`. It starts in the notification area with no console window.
+2. Right-click its tray icon and enable **Start with Windows**. This registers the current
    executable path and arguments for your account at sign-in, without requiring administrator
    access or Task Scheduler. Uncheck the same option to disable it. If you move the executable,
    launch it from its new location and enable the option again.
@@ -101,8 +106,7 @@ unique part of a monitor description. `--wake-delay` accepts 0–10000 milliseco
 Enable **Start with Windows** after launching with your chosen arguments to save them.
 
 Monitors are enumerated when switching, so unavailable displays at sign-in do not terminate the
-receiver. If switching fails, check DDC/CI, the cable, dock, and display driver. The original
-[`windows/monitor-switch.ps1`](../../windows/monitor-switch.ps1) remains available as a legacy receiver.
+receiver. If switching fails, check DDC/CI, the cable, dock, and display driver.
 
 ## Simultaneous-delivery test
 

@@ -1,0 +1,45 @@
+name: Build Pad Pocket firmware
+
+on:
+  push:
+    paths:
+      - 'togkey_zmk_source/zmk-config-pad-pocket/**'
+      - '.github/workflows/build-pad-pocket.yml'
+  pull_request:
+    paths:
+      - 'togkey_zmk_source/zmk-config-pad-pocket/**'
+      - '.github/workflows/build-pad-pocket.yml'
+  workflow_dispatch:
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    uses: zmkfirmware/zmk/.github/workflows/build-user-config.yml@v0.3
+    with:
+      config_path: togkey_zmk_source/zmk-config-pad-pocket/config
+      build_matrix_path: togkey_zmk_source/zmk-config-pad-pocket/build.yaml
+      archive_name: pad-pocket-firmware
+
+  release:
+    if: github.event_name == 'release'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download firmware
+        uses: actions/download-artifact@v4
+        with:
+          name: pad-pocket-firmware
+          path: firmware
+
+      - name: Upload firmware to release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        run: gh release upload "$RELEASE_TAG" firmware/*.uf2 --clobber

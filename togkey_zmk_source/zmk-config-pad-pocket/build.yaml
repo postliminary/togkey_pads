@@ -22,5 +22,8 @@ include:
   - board: seeeduino_xiao_ble
     shield: pad_pocket
     snippet: studio-rpc-usb-uart
+    cmake-args: -DZMK_EXTRA_MODULES="${GITHUB_WORKSPACE}/togkey_zmk_source/zmk-config-pad-pocket"
+    artifact-name: pad-pocket
   - board: seeeduino_xiao_ble
     shield: settings_reset
+    artifact-name: pad-pocket-settings-reset
