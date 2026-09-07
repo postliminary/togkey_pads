@@ -18,11 +18,63 @@ permissions:
 
 jobs:
   build:
-    uses: zmkfirmware/zmk/.github/workflows/build-user-config.yml@v0.3
-    with:
-      config_path: togkey_zmk_source/zmk-config-pad-pocket/config
-      build_matrix_path: togkey_zmk_source/zmk-config-pad-pocket/build.yaml
-      archive_name: pad-pocket-firmware
+    runs-on: ubuntu-latest
+    container:
+      image: zmkfirmware/zmk-build-arm:stable
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Initialize isolated West workspace
+        run: |
+          workspace="$RUNNER_TEMP/pad-pocket-west"
+          mkdir -p "$workspace"
+          cp -R "$GITHUB_WORKSPACE/togkey_zmk_source/zmk-config-pad-pocket/config" "$workspace/config"
+          cd "$workspace"
+          west init -l config
+          echo "WEST_WORKSPACE=$workspace" >> "$GITHUB_ENV"
+
+      - name: Fetch ZMK and dependencies
+        run: |
+          cd "$WEST_WORKSPACE"
+          west update --fetch-opt=--filter=tree:0
+          west zephyr-export
+
+      - name: Build firmware from Pad Pocket matrix
+        run: |
+          cd "$WEST_WORKSPACE"
+          python - <<'PY'
+          import os
+          import pathlib
+          import shlex
+          import shutil
+          import subprocess
+          import yaml
+
+          source = pathlib.Path(os.environ['GITHUB_WORKSPACE']) / 'togkey_zmk_source/zmk-config-pad-pocket'
+          workspace = pathlib.Path(os.environ['WEST_WORKSPACE'])
+          artifacts = workspace / 'artifacts'
+          artifacts.mkdir()
+          matrix = yaml.safe_load((source / 'build.yaml').read_text())
+          for entry in matrix['include']:
+              build = workspace / 'build' / entry['artifact-name']
+              command = ['west', 'build', '-s', 'zmk/app', '-d', str(build), '-b', entry['board']]
+              if entry.get('snippet'):
+                  command += ['-S', entry['snippet']]
+              command += ['--', f'-DZMK_CONFIG={workspace / "config"}', f'-DSHIELD={entry["shield"]}']
+              command += shlex.split(os.path.expandvars(entry.get('cmake-args', '')))
+              subprocess.run(command, check=True)
+              shutil.copy2(build / 'zephyr/zmk.uf2', artifacts / (entry['artifact-name'] + '.uf2'))
+          PY
+
+      - name: Upload firmware
+        uses: actions/upload-artifact@v4
+        with:
+          name: pad-pocket-firmware
+          path: ${{ env.WEST_WORKSPACE }}/artifacts/*.uf2
+          if-no-files-found: error
 
   release:
     if: github.event_name == 'release'
